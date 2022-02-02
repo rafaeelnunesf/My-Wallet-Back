@@ -106,7 +106,6 @@ app.get("/home", async (req, res) => {
     if (!session) return res.sendStatus(401);
 
     const user = await db.collection("users").findOne({ _id: session.userId });
-
     if (user) {
       delete user.password;
       res.send(user);
