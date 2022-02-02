@@ -4,6 +4,7 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import joi from "joi";
 import dotenv from "dotenv";
+import { v4 as uuid } from "uuid";
 dotenv.config();
 
 const app = express();
@@ -18,6 +19,11 @@ mongoClient.connect(() => {
 
 const userSchema = joi.object({
   name: joi.string().required(),
+  email: joi.string().email().required(),
+  password: joi.string().required(),
+});
+
+const userLoginSchema = joi.object({
   email: joi.string().email().required(),
   password: joi.string().required(),
 });
@@ -52,6 +58,35 @@ app.post("/register", async (req, res) => {
       .insertOne({ ...user, password: passwordHashed });
 
     res.sendStatus(201);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const validation = userLoginSchema.validate(req.body, { abortEarly: true });
+  if (validation.error) {
+    return res.status(422).send(validation.error.details);
+  }
+  try {
+    const user = await db.collection("users").findOne({ email });
+    if (!user) {
+      return res
+        .status(401)
+        .send("Usuário não cadastrado! Tente outro por favor.");
+    }
+
+    const passwordsMatch = bcrypt.compareSync(password, user.password);
+    if (passwordsMatch) {
+      const token = uuid();
+      await db.collection("sessions").insertOne({
+        userId: user._id,
+        token,
+      });
+      res.send(token);
+    }
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
