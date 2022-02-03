@@ -28,6 +28,15 @@ const userLoginSchema = joi.object({
   password: joi.string().required(),
 });
 
+const entriesSchema = joi.object({
+  value: joi.number().required(),
+  description: joi.string().required(),
+  date: joi
+    .string()
+    .pattern(/^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/)
+    .required(),
+});
+
 app.post("/register", async (req, res) => {
   const user = req.body;
 
@@ -81,6 +90,14 @@ app.post("/login", async (req, res) => {
 
     const passwordsMatch = bcrypt.compareSync(password, user.password);
     if (passwordsMatch) {
+      const hasToken = await db
+        .collection("sessions")
+        .findOne({ userId: user._id });
+      if (hasToken) {
+        console.log(hasToken);
+        await db.collection("sessions").deleteOne(hasToken);
+      }
+
       const token = uuid();
       await db.collection("sessions").insertOne({
         userId: user._id,
@@ -115,6 +132,45 @@ app.get("/home", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+app.post("/entries/:IDentrie", async (req, res) => {
+  ////////////////////////////// START VALIDATION //////////////////////////////
+  const validation = entriesSchema.validate(req.body, { abortEarly: true });
+  if (validation.error) return res.status(422).send(validation.error.details);
+
+  if (!(req.params.IDentrie === "input" || req.params.IDentrie === "output"))
+    return res.sendStatus(404);
+
+  const { authorization } = req.headers;
+  const token = authorization?.replace("Bearer ", "");
+  if (!token) return res.sendStatus(401);
+  const session = await db.collection("sessions").findOne({ token });
+  if (!session) return res.sendStatus(401);
+  ////////////////////////////// END VALIDATION //////////////////////////////
+
+  try {
+    let entrie;
+    if (req.params.IDentrie === "input")
+      entrie = {
+        ...req.body,
+        userId: session.userId,
+        value: Math.abs(req.body.value),
+      };
+    else
+      entrie = {
+        ...req.body,
+        userId: session.userId,
+        value: -Math.abs(req.body.value),
+      };
+
+    await db.collection("entries").insertOne(entrie);
+    res.sendStatus(201);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
 app.listen(5000, () => {
   console.log("servidor rodando na porta 5000...");
 });
