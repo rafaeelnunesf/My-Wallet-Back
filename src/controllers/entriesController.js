@@ -8,13 +8,13 @@ export async function entries(req, res) {
     if (req.params.IDentrie === "input")
       entrie = {
         ...req.body,
-        userId: userId,
+        userId,
         value: Math.abs(req.body.value),
       };
     else
       entrie = {
         ...req.body,
-        userId: userId,
+        userId,
         value: -Math.abs(req.body.value),
       };
 
@@ -30,14 +30,7 @@ export async function getEntries(req, res) {
   const { userId } = res.locals;
 
   try {
-    const entries = await db
-      .collection("entries")
-      .find({ userId: userId })
-      .toArray();
-
-    entries.map((item) => {
-      delete item._id;
-    });
+    const entries = await db.collection("entries").find({ userId }).toArray();
 
     if (entries) {
       res.send(entries);

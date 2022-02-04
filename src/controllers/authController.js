@@ -37,20 +37,20 @@ export async function login(req, res) {
 }
 
 export async function register(req, res) {
-  const user = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    const passwordHashed = bcrypt.hashSync(user.password, 10);
+    const passwordHashed = bcrypt.hashSync(password, 10);
     const userExist = await db
       .collection("users")
-      .findOne({ $or: [{ name: user.name }, { email: user.email }] });
+      .findOne({ $or: [{ name }, { email }] });
 
     if (userExist) {
-      if (userExist.name === user.name) {
+      if (userExist.name === name) {
         return res
           .status(409)
           .send("Nome de usuário já cadastrado! Tente outro por favor.");
-      } else if (userExist.email === user.email) {
+      } else if (userExist.email === email) {
         return res
           .status(409)
           .send("email já cadastrado! Tente outro por favor.");
@@ -59,7 +59,7 @@ export async function register(req, res) {
 
     await db
       .collection("users")
-      .insertOne({ ...user, password: passwordHashed });
+      .insertOne({ ...req.body, password: passwordHashed });
 
     res.sendStatus(201);
   } catch (error) {
