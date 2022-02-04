@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon app.js"
+    "start": "fuser -k 5000/tcp; npx nodemon src/app.js"
   },
   "repository": {
     "type": "git",
