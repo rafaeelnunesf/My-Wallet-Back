@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import db from "../db.js";
 
 export async function entries(req, res) {
@@ -35,6 +36,18 @@ export async function getEntries(req, res) {
     if (entries) {
       res.send(entries);
     } else res.sendStatus(401);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
+export async function deleteEntries(req, res) {
+  const {_id} = req.params
+  try {
+    const existEntrie = await db.collection("entries").findOne( new ObjectId(_id) );
+    if(!existEntrie) return res.sendStatus(422)
+    await db.collection("entries").deleteOne({_id: existEntrie._id})
+    res.sendStatus(200);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
