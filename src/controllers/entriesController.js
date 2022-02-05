@@ -71,7 +71,6 @@ export async function editEntrie(req, res) {
     else
       objectUpdate = {...existEntrie, description, value: Math.abs(parseFloat(value)),date}
 
-
     await db.collection("entries").updateOne({ _id: existEntrie._id }, { $set: objectUpdate })
 		res.sendStatus(200)
 	 } catch (error) {
