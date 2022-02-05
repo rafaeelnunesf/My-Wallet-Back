@@ -58,12 +58,20 @@ export async function deleteEntries(req, res) {
 export async function editEntrie(req, res) {
   const { _id } = req.query;
   const {value, description, date} = req.body
+  const {type} = req.params
+
+  console.log(type)
 	
   try {
     const existEntrie = await db.collection("entries").findOne( new ObjectId(_id) );
     if(!existEntrie) return res.sendStatus(422)
-    
-    const objectUpdate = {...existEntrie, description, value: parseFloat(value),date}
+    let objectUpdate
+    if(type==="output")
+      objectUpdate = {...existEntrie, description, value: -Math.abs(parseFloat(value)),date}
+    else
+      objectUpdate = {...existEntrie, description, value: Math.abs(parseFloat(value)),date}
+
+
     await db.collection("entries").updateOne({ _id: existEntrie._id }, { $set: objectUpdate })
 		res.sendStatus(200)
 	 } catch (error) {
