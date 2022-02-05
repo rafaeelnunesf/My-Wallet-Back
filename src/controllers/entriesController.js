@@ -41,6 +41,7 @@ export async function getEntries(req, res) {
     res.sendStatus(500);
   }
 }
+
 export async function deleteEntries(req, res) {
   const {_id} = req.params
   try {
@@ -52,4 +53,21 @@ export async function deleteEntries(req, res) {
     console.log(error);
     res.sendStatus(500);
   }
+}
+
+export async function editEntrie(req, res) {
+  const { _id } = req.params;
+  const {value, description, date} = req.body
+	
+  try {
+    const existEntrie = await db.collection("entries").findOne( new ObjectId(_id) );
+    if(!existEntrie) return res.sendStatus(422)
+    
+    const objectUpdate = {...existEntrie, description, value: parseFloat(value),date}
+    await db.collection("entries").updateOne({ _id: existEntrie._id }, { $set: objectUpdate })
+		res.sendStatus(200)
+	 } catch (error) {
+    console.log(error)
+    res.status(500).send(error)
+	 }
 }
