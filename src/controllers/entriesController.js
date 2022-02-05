@@ -6,7 +6,7 @@ export async function entries(req, res) {
 
   try {
     let entrie;
-    if (req.params.IDentrie === "input")
+    if (req.params.type === "input")
       entrie = {
         ...req.body,
         userId,
@@ -56,7 +56,7 @@ export async function deleteEntries(req, res) {
 }
 
 export async function editEntrie(req, res) {
-  const { _id } = req.params;
+  const { _id } = req.query;
   const {value, description, date} = req.body
 	
   try {

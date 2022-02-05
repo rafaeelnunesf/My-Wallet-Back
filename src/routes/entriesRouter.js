@@ -7,10 +7,14 @@ import tokenValidationMiddleware from "../middlewares/entriesValidationMiddlewar
 const entriesRouter = Router();
 entriesRouter.use(tokenValidationMiddleware);
 entriesRouter.delete("/entries/:_id",deleteEntries)
-entriesRouter.put("/entries/:_id",entriesSchemaValidationMiddleware,editEntrie)
+entriesRouter.put(
+  "/entries/edit/:type",
+  entriesSchemaValidationMiddleware,
+  rightParamsValidationMiddleware,
+  editEntrie)
 entriesRouter.get("/home", getEntries);
 entriesRouter.post(
-  "/entries/:IDentrie",
+  "/entries/add/:type",
   entriesSchemaValidationMiddleware,
   rightParamsValidationMiddleware,
   entries
